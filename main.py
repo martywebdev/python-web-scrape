@@ -13,7 +13,7 @@ def scrape(url):
 
 def extract(source):
     extractor = selectorlib.Extractor.from_yaml_file('extract.yaml')
-    value = extractor.extract(source)['tours']
+    value = extractor.extract(source)
     return  value
 
 if __name__ == '__main__':
