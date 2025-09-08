@@ -13,10 +13,26 @@ def scrape(url):
 
 def extract(source):
     extractor = selectorlib.Extractor.from_yaml_file('extract.yaml')
-    value = extractor.extract(source)
+    value = extractor.extract(source)['tours']
     return  value
+
+def store(extracted):
+    with open('data.txt', 'a') as f:
+        f.write(extracted + '\n')
+
+def send_email():
+    print("Email was sent!")
+
+def read():
+    with open('data.txt', 'r') as f:
+        return f.read()
 
 if __name__ == '__main__':
     scraped = scrape(URL)
     extracted = extract(scraped)
     print(extracted)
+    content = read()
+    if extracted != "No upcoming tours":
+        if extracted not in content:
+            store(extracted)
+            send_email()
