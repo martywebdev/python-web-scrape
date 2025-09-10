@@ -1,4 +1,5 @@
 import smtplib
+import sqlite3
 import ssl
 import os
 import time
@@ -53,14 +54,16 @@ def read():
 
 
 if __name__ == '__main__':
-
-    while True:
-        scraped = scrape(URL)
-        extracted = extract(scraped)
-        print(extracted)
-        content = read()
-        if extracted != "No upcoming tours":
-            if extracted not in content:
-                store(extracted)
-                send_email(extracted)
-        time.sleep(2)
+    scraped = scrape(URL)
+    extracted = extract(scraped)
+    content = read()
+    if extracted != "No upcoming tours":
+        store(extracted)
+        conn = sqlite3.connect('data.db')
+        cursor = conn.cursor()
+        parts = [p.strip() for p in extracted.split(",")]
+        print(parts)
+        cursor.execute("INSERT INTO events VALUES (?, ?, ?)", parts)
+        conn.commit()
+        conn.close()
+        # send_email(extracted)
