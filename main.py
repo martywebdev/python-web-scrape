@@ -14,6 +14,7 @@ URL = 'https://programmer100.pythonanywhere.com/tours'
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
+connection = sqlite3.connect('data.db')
 
 def scrape(url):
     """Scrape the page source from the URL"""
@@ -48,22 +49,36 @@ def send_email(message):
         server.sendmail(username, receiver, message)
 
 
-def read():
-    with open('data.txt', 'r') as f:
-        return f.read()
+def read(extracted):
+    parts = [p.strip() for p in extracted.split(",")]
+    band, city, date = parts
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM events WHERE band=? AND city=? AND date=?", (band, city, date))
+    rows = cursor.fetchall()
 
+    return rows
+        
 
 if __name__ == '__main__':
     scraped = scrape(URL)
     extracted = extract(scraped)
-    content = read()
+    
     if extracted != "No upcoming tours":
-        store(extracted)
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-        parts = [p.strip() for p in extracted.split(",")]
-        print(parts)
-        cursor.execute("INSERT INTO events VALUES (?, ?, ?)", parts)
-        conn.commit()
-        conn.close()
-        # send_email(extracted)
+
+        
+
+        row = read(extracted)
+
+        if len(row) == 0 :
+
+            cursor = connection.cursor()
+            print(row)
+            
+            data = tuple(p.strip() for p in extracted.split(","))
+            cursor.execute("INSERT INTO events VALUES (?, ?, ?)", data)
+            connection.commit()
+            connection.close()
+            send_email(extracted)
+            print('success')
+    else: 
+        print('try again')
